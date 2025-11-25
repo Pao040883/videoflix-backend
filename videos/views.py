@@ -33,8 +33,8 @@ class VideoViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['get'])
     def featured(self, request):
-        """Get featured video for hero section"""
-        featured_video = Video.objects.filter(is_featured=True).first()
+        """Get random featured video for hero section"""
+        featured_video = Video.objects.filter(is_featured=True).order_by('?').first()
         if featured_video:
             serializer = VideoDetailSerializer(featured_video, context={'request': request})
             return Response(serializer.data)
