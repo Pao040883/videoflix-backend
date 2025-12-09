@@ -71,6 +71,7 @@ def send_activation_email(user, activation_link):
     Returns:
         bool: True if email sent successfully, False otherwise
     """
+    logger.info(f"Starting to send activation email to {user.email}")
     try:
         import base64
         from django.contrib.staticfiles import finders
@@ -91,7 +92,8 @@ def send_activation_email(user, activation_link):
         image_mime = MIMEImage(img_data, 'png')
         image_mime.add_header('Content-ID', f'<{image_cid}>')
         image_mime.add_header('Content-Disposition', 'inline; filename="logo_videoflix.png"')
-            
+        
+        logger.info(f"Rendering activation email template for {user.email}")    
         html_content = render_to_string('emails/activation.html', {
             'user': user,
             'activation_link': activation_link,
@@ -100,21 +102,24 @@ def send_activation_email(user, activation_link):
         
         text_content = f"Klicke auf den folgenden Link, um deinen Account zu aktivieren:\n{activation_link}"
         
+        logger.info(f"Creating email message for {user.email}")
         email = EmailMultiAlternatives(
             subject='Aktiviere deinen Videoflix Account',
             body=text_content,
-            from_email=settings.DEFAULT_FROM_EMAIL,
+            from_email=f"Videoflix <{settings.DEFAULT_FROM_EMAIL}>",
             to=[user.email]
         )
         email.attach_alternative(html_content, "text/html")
         email.attach(image_mime)
+        
+        logger.info(f"Sending activation email to {user.email}")
         email.send()
         
-        logger.info(f"Activation email sent to {user.email}")
+        logger.info(f"Activation email sent successfully to {user.email}")
         return True
         
     except Exception as e:
-        logger.error(f"Error sending activation email to {user.email}: {e}")
+        logger.error(f"Error sending activation email to {user.email}: {e}", exc_info=True)
         return False
 
 
@@ -161,7 +166,7 @@ def send_password_reset_email(user, reset_link):
         email = EmailMultiAlternatives(
             subject="Passwort zurücksetzen",
             body=text_content,
-            from_email=settings.DEFAULT_FROM_EMAIL,
+            from_email=f"Videoflix <{settings.DEFAULT_FROM_EMAIL}>",
             to=[user.email],
         )
         email.attach_alternative(html_content, "text/html")

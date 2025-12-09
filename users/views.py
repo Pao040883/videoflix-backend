@@ -34,7 +34,9 @@ class RegisterView(APIView):
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
+            logger.info(f"User created: {user.email}, about to send activation email")
             self._send_activation_email_to_user(user)
+            logger.info(f"Activation email function completed for {user.email}")
             
             return Response({
                 'message': 'Registration successful. Please check your email to activate your account.'
@@ -44,9 +46,14 @@ class RegisterView(APIView):
     
     def _send_activation_email_to_user(self, user):
         """Send activation email to newly registered user"""
+        logger.info(f"_send_activation_email_to_user called for {user.email}")
         uid, token = generate_activation_token(user)
         activation_link = build_activation_link(uid, token)
-        send_activation_email(user, activation_link)
+        logger.info(f"Activation link generated: {activation_link}")
+        success = send_activation_email(user, activation_link)
+        logger.info(f"send_activation_email returned: {success}")
+        if not success:
+            logger.error(f"Failed to send activation email to {user.email}")
 
 
 class ActivateAccountView(APIView):
