@@ -123,7 +123,7 @@ class CookieTokenRefreshView(TokenRefreshView):
 
         response = super().post(request, *args, **kwargs)
 
-        # Wenn Rotation aktiv ist, kommt ein neuer refresh-Token zurück → setze ihn neu
+        # If rotation is enabled, a new refresh token is returned → set it again
         if "refresh" in response.data:
             new_refresh = response.data["refresh"]
             response.set_cookie(
@@ -182,7 +182,7 @@ class PasswordResetRequestView(APIView):
             user = User.objects.get(email=email)
             self._send_password_reset_email_to_user(user)
         except User.DoesNotExist:
-            # Sicherheitsmaßnahme: Kein Hinweis, ob Mail existiert
+            # Security measure: do not reveal whether the email exists
             pass
 
         return Response({'message': 'If a user with this email exists, an email has been sent.'})

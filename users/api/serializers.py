@@ -16,13 +16,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if data['password'] != data['confirm_password']:
             raise serializers.ValidationError({
-                'confirm_password': 'Passwörter stimmen nicht überein.'
+                'confirm_password': 'Passwords do not match.'
             })
         return data
 
     def validate_email(self, value):
         if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError('Bitte überprüfe deine Eingaben und versuche es erneut.')
+            raise serializers.ValidationError('Please check your input and try again.')
         return value
 
     def create(self, validated_data):
@@ -30,7 +30,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(
             email=validated_data['email'],
             password=validated_data['password'],
-            is_active=False  # User muss Email erst bestätigen
+            is_active=False  # User must confirm email first
         )
         return user
 
@@ -43,24 +43,24 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         password = attrs.get('password')
 
         if not email or not password:
-            raise serializers.ValidationError("E-Mail und Passwort erforderlich.")
+            raise serializers.ValidationError("Email and password are required.")
 
-        # Prüfe ob User existiert
+        # Check if user exists
         try:
             user = User.objects.get(email=email)
             
-            # Prüfe ob Account aktiviert ist
+            # Check whether the account is activated
             if not user.is_active:
                 raise serializers.ValidationError(
-                    "Account ist noch nicht aktiviert. Bitte überprüfe deine E-Mails."
+                    "Account is not activated yet. Please check your email."
                 )
             
-            # Prüfe Passwort
+            # Check password
             if not user.check_password(password):
-                raise serializers.ValidationError("Ungültige E-Mail oder Passwort.")
+                raise serializers.ValidationError("Invalid email or password.")
                 
         except User.DoesNotExist:
-            raise serializers.ValidationError("Ungültige E-Mail oder Passwort.")
+            raise serializers.ValidationError("Invalid email or password.")
 
         self.user = user
         data = super().validate(attrs)

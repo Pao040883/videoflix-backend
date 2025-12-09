@@ -100,11 +100,11 @@ def send_activation_email(user, activation_link):
             'image_cid': image_cid,
         })
         
-        text_content = f"Klicke auf den folgenden Link, um deinen Account zu aktivieren:\n{activation_link}"
+        text_content = f"Click the link below to activate your account:\n{activation_link}"
         
         logger.info(f"Creating email message for {user.email}")
         email = EmailMultiAlternatives(
-            subject='Aktiviere deinen Videoflix Account',
+            subject='Activate your Videoflix account',
             body=text_content,
             from_email=f"Videoflix <{settings.DEFAULT_FROM_EMAIL}>",
             to=[user.email]
@@ -161,10 +161,10 @@ def send_password_reset_email(user, reset_link):
             "image_cid": image_cid,
         })
         
-        text_content = f"Klicke auf den folgenden Link, um dein Passwort zurückzusetzen:\n{reset_link}"
+        text_content = f"Click the link below to reset your password:\n{reset_link}"
         
         email = EmailMultiAlternatives(
-            subject="Passwort zurücksetzen",
+            subject="Reset your password",
             body=text_content,
             from_email=f"Videoflix <{settings.DEFAULT_FROM_EMAIL}>",
             to=[user.email],

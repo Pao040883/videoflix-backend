@@ -4,7 +4,7 @@ from django.db import models
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError("Die E-Mail-Adresse ist erforderlich.")
+              raise ValueError("Email address is required.")
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
@@ -29,7 +29,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     objects = CustomUserManager()
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []  # z. B. ['first_name', 'last_name'] wenn gewünscht
+    REQUIRED_FIELDS = []  # e.g. ['first_name', 'last_name'] if desired
 
     def __str__(self):
         return self.email
