@@ -37,7 +37,7 @@ class RegisterView(APIView):
             self._send_activation_email_to_user(user)
             
             return Response({
-                'message': 'Registrierung erfolgreich. Bitte überprüfe deine E-Mail zur Aktivierung.'
+                'message': 'Registration successful. Please check your email to activate your account.'
             }, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -61,16 +61,16 @@ class ActivateAccountView(APIView):
                 user.is_active = True
                 user.save()
                 return Response({
-                    'message': 'Account erfolgreich aktiviert. Du kannst dich jetzt anmelden.'
+                    'message': 'Account successfully activated. You can now log in.'
                 }, status=status.HTTP_200_OK)
             else:
                 return Response({
-                    'error': 'Ungültiger Aktivierungslink.'
+                    'error': 'Invalid activation link.'
                 }, status=status.HTTP_400_BAD_REQUEST)
                 
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
             return Response({
-                'error': 'Ungültiger Aktivierungslink.'
+                'error': 'Invalid activation link.'
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -97,7 +97,7 @@ class CookieTokenObtainPairView(TokenObtainPairView):
 
         response.data = {
             "access": access_token,
-            "message": "Login erfolgreich."
+            "message": "Login successful."
         }
         return response
 
@@ -105,7 +105,15 @@ class CookieTokenObtainPairView(TokenObtainPairView):
 
 class CookieTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
-        request.data['refresh'] = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE'])
+        refresh_cookie = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE'])
+        if not refresh_cookie:
+            return Response({"detail": "Refresh token cookie missing."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        from django.http import QueryDict
+        qd = QueryDict(mutable=True)
+        qd.update({"refresh": refresh_cookie})
+        request._full_data = qd
+
         response = super().post(request, *args, **kwargs)
 
         # Wenn Rotation aktiv ist, kommt ein neuer refresh-Token zurück → setze ihn neu
@@ -135,7 +143,7 @@ class LogoutView(APIView):
                 token = RefreshToken(refresh_token)
                 token.blacklist()
             except Exception as e:
-                return Response({"detail": "Token ungültig oder bereits abgelaufen."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"detail": "Token is invalid or has already expired."}, status=status.HTTP_400_BAD_REQUEST)
 
         response = Response(status=status.HTTP_204_NO_CONTENT)
         response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'], path='/')
@@ -161,7 +169,7 @@ class PasswordResetRequestView(APIView):
     def post(self, request):
         email = request.data.get('email')
         if not email:
-            return Response({'error': 'E-Mail ist erforderlich.'}, status=400)
+            return Response({'error': 'Email is required.'}, status=400)
 
         try:
             user = User.objects.get(email=email)
@@ -170,7 +178,7 @@ class PasswordResetRequestView(APIView):
             # Sicherheitsmaßnahme: Kein Hinweis, ob Mail existiert
             pass
 
-        return Response({'message': 'Falls der Nutzer existiert, wurde eine E-Mail versendet.'})
+        return Response({'message': 'If a user with this email exists, an email has been sent.'})
     
     def _send_password_reset_email_to_user(self, user):
         """Send password reset email to user"""
@@ -189,21 +197,21 @@ class PasswordResetConfirmView(APIView):
         password2 = request.data.get('new_password2')
 
         if not all([uidb64, token, password1, password2]):
-            return Response({'error': 'Alle Felder sind erforderlich.'}, status=400)
+            return Response({'error': 'All fields are required.'}, status=400)
 
         if password1 != password2:
-            return Response({'error': 'Die Passwörter stimmen nicht überein.'}, status=400)
+            return Response({'error': 'Passwords do not match.'}, status=400)
 
         try:
             uid = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=uid)
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-            return Response({'error': 'Ungültiger Benutzer.'}, status=400)
+            return Response({'error': 'Invalid user.'}, status=400)
 
         if not default_token_generator.check_token(user, token):
-            return Response({'error': 'Ungültiger oder abgelaufener Token.'}, status=400)
+            return Response({'error': 'Invalid or expired token.'}, status=400)
 
         user.set_password(password1)
         user.save()
 
-        return Response({'message': 'Passwort erfolgreich zurückgesetzt.'})
+        return Response({'message': 'Password has been reset successfully.'})

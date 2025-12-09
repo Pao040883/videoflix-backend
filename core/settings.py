@@ -188,7 +188,7 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_COOKIE': 'refresh_token',  # Name des Cookies
-    'AUTH_COOKIE_SECURE': True,      # Nur über HTTPS senden
+    'AUTH_COOKIE_SECURE': not DEBUG,      # In Dev (http://localhost) nicht Secure setzen
     'AUTH_COOKIE_SAMESITE': 'Lax',
     "BLACKLIST_AFTER_ROTATION": True,
     "ROTATE_REFRESH_TOKENS": True,
