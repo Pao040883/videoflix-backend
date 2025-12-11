@@ -1,3 +1,9 @@
+"""
+Serializers for user registration and authentication.
+
+All validation messages remain generic to avoid leaking account existence
+or activation state beyond necessary guidance.
+"""
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework import serializers
@@ -6,6 +12,7 @@ User = get_user_model()
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
+    """Handle new user registration with password confirmation checks."""
     password = serializers.CharField(write_only=True, min_length=8)
     confirm_password = serializers.CharField(write_only=True)
 
@@ -14,6 +21,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         fields = ['email', 'password', 'confirm_password']
 
     def validate(self, data):
+        """Ensure both password fields match before creating the user."""
         if data['password'] != data['confirm_password']:
             raise serializers.ValidationError({
                 'confirm_password': 'Passwords do not match.'
@@ -21,11 +29,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return data
 
     def validate_email(self, value):
+        """Reject duplicate emails with a generic, security-friendly message."""
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError('Please check your input and try again.')
         return value
 
     def create(self, validated_data):
+        """Create an inactive user; activation email is handled in the view."""
         validated_data.pop('confirm_password')
         user = User.objects.create_user(
             email=validated_data['email'],
@@ -36,9 +46,11 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """Email-based login serializer with activation and credential checks."""
     username_field = 'email'
 
     def validate(self, attrs):
+        """Validate credentials, ensure activation, and return JWT pair."""
         email = attrs.get('email')
         password = attrs.get('password')
 

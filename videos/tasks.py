@@ -1,3 +1,7 @@
+"""
+Background tasks for video processing: HLS conversion and preview generation.
+Triggered via RQ when an original VideoFile is saved.
+"""
 import os
 import logging
 import subprocess

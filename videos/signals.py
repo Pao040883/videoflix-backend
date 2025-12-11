@@ -1,3 +1,9 @@
+"""
+Signals for video file lifecycle events.
+
+On creation of an original VideoFile we enqueue HLS conversion; on deletion
+we remove the associated media file from disk.
+"""
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from .models import VideoFile
